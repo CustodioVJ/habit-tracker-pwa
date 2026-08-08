@@ -1,0 +1,32 @@
+{
+  "name": "habit-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A personal habit-tracking app with streaks, statistics, and a clean dashboard.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @habit/api\" \"npm run dev -w @habit/web\"",
+    "build": "npm run build -w @habit/shared && npm run build -w @habit/api && npm run build -w @habit/web",
+    "test": "npm run test -w @habit/api",
+    "lint": "npm run lint -w @habit/api && npm run lint -w @habit/web",
+    "format": "prettier --write .",
+    "db:migrate": "npm run db:migrate -w @habit/api",
+    "db:seed": "npm run db:seed -w @habit/api",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md,css}": "prettier --write"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

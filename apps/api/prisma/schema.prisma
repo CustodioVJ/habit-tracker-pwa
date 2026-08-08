@@ -1,0 +1,95 @@
+// Prisma schema for the habit tracker app.
+// Uses PostgreSQL as the primary database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String         @map("password_hash")
+  name         String
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  habits        Habit[]
+  categories    Category[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habits Habit[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("categories")
+}
+
+model Habit {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  name           String
+  description    String?
+  icon           String?
+  color          String   @default("#6366f1")
+  frequencyType  String   @map("frequency_type")
+  frequencyConfig Json    @map("frequency_config")
+  categoryId     String?  @map("category_id")
+  startDate      DateTime @map("start_date")
+  isArchived     Boolean  @default(false) @map("is_archived")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  checkIns CheckIn[]
+
+  @@index([userId])
+  @@index([categoryId])
+  @@map("habits")
+}
+
+model CheckIn {
+  id        String   @id @default(uuid())
+  habitId   String   @map("habit_id")
+  date      DateTime @db.Date
+  completed Boolean  @default(false)
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([habitId, date])
+  @@map("check_ins")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@map("refresh_tokens")
+}
