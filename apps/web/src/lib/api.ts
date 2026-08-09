@@ -13,12 +13,45 @@ const BASE_URL = '/api/v1';
 /** Access token stored in memory (not localStorage) for security. */
 let accessToken: string | null = null;
 
+/** In-flight refresh promise so concurrent 401s share a single refresh call. */
+let refreshPromise: Promise<string | null> | null = null;
+
 export function setAccessToken(token: string | null): void {
   accessToken = token;
 }
 
 export function getAccessToken(): string | null {
   return accessToken;
+}
+
+/**
+ * Exchange the HTTP-only refresh cookie for a fresh access token.
+ * Returns the new token, or null if the refresh fails (e.g. no session).
+ */
+async function refreshAccessToken(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          accessToken = null;
+          return null;
+        }
+        const data = await res.json();
+        accessToken = data?.accessToken ?? null;
+        return accessToken;
+      } catch {
+        accessToken = null;
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
 }
 
 /** API error with a normalized shape. */
@@ -40,17 +73,29 @@ interface RequestOptions {
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, auth = true } = options;
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (auth && accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers,
-    credentials: 'include',
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  const doFetch = (token: string | null): Promise<Response> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (auth && token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      credentials: 'include',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  };
+
+  let res = await doFetch(accessToken);
+
+  // If the access token expired, try to refresh it once and retry.
+  if (res.status === 401 && auth) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      res = await doFetch(newToken);
+    }
+  }
 
   if (!res.ok) {
     let message = 'Request failed';
@@ -60,7 +105,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       message = data?.error?.message ?? message;
       code = data?.error?.code ?? code;
     } catch {
-      // ignore parse errors
+      // Non-JSON error body (e.g. proxy/network error). Surface the status.
+      message = `Request failed (${res.status})`;
     }
     throw new ApiError(res.status, code, message);
   }

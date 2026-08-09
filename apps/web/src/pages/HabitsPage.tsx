@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Flame, Archive, Trash2, Pencil } from 'lucide-react';
+import { Plus, Flame, Archive, RotateCcw, Trash2, Pencil } from 'lucide-react';
 import { HabitWithMeta, Category, FrequencyConfig } from '@habit/shared';
 import { habitApi, categoryApi } from '../lib/api';
 import { LoadingScreen } from '../components/LoadingScreen';
@@ -33,6 +33,11 @@ export function HabitsPage() {
 
   const handleArchive = async (habit: HabitWithMeta) => {
     await habitApi.archive(habit.id);
+    await load();
+  };
+
+  const handleUnarchive = async (habit: HabitWithMeta) => {
+    await habitApi.unarchive(habit.id);
     await load();
   };
 
@@ -105,13 +110,21 @@ export function HabitsPage() {
                   >
                     <Pencil size={16} />
                   </button>
-                  {!habit.isArchived && (
+                  {!habit.isArchived ? (
                     <button
                       onClick={() => void handleArchive(habit)}
                       className="rounded p-1 text-gray-400 hover:text-amber-500"
                       title="Archive"
                     >
                       <Archive size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => void handleUnarchive(habit)}
+                      className="rounded p-1 text-gray-400 hover:text-green-500"
+                      title="Unarchive"
+                    >
+                      <RotateCcw size={16} />
                     </button>
                   )}
                   <button

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+ import { Prisma } from '@prisma/client';
 import { HabitStats, HeatmapCell, FrequencyConfig } from '@habit/shared';
 import { prisma } from '../lib/prisma';
 import { notFound, forbidden } from '../lib/errors';
@@ -70,7 +70,7 @@ export async function getHabitStats(
     throw forbidden();
   }
 
-  const config = habit.frequencyConfig as unknown as FrequencyConfig;
+  const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
   const today = todayString();
   const { start, end } = periodRange(period, today);
 
@@ -124,7 +124,7 @@ export async function getAggregateCompletionRate(
   let totalCompleted = 0;
 
   for (const habit of habits) {
-    const config = habit.frequencyConfig as unknown as FrequencyConfig;
+    const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
     const habitStart = toDateString(habit.startDate);
     const effectiveStart = start < habitStart ? habitStart : start;
     const completedSet = new Set(
@@ -150,7 +150,7 @@ export async function getYearHeatmap(habitId: string, userId: string): Promise<H
     throw forbidden();
   }
 
-  const config = habit.frequencyConfig as unknown as FrequencyConfig;
+  const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
   const today = todayString();
   const start = startOfYear(today);
   const end = endOfYear(today);

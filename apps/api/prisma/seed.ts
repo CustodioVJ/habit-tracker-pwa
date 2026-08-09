@@ -54,7 +54,7 @@ async function main() {
         name: data.name,
         color: data.color,
         frequencyType: data.frequencyType,
-        frequencyConfig: data.frequencyConfig as never,
+        frequencyConfig: JSON.stringify(data.frequencyConfig),
         categoryId: data.categoryId,
         startDate: fromDateString(startDate),
       },

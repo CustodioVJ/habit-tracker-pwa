@@ -20,7 +20,7 @@ function toHabitDto(habit: HabitWithRelations) {
     icon: habit.icon,
     color: habit.color,
     frequencyType: habit.frequencyType as HabitWithMeta['frequencyType'],
-    frequencyConfig: habit.frequencyConfig as unknown as FrequencyConfig,
+    frequencyConfig: JSON.parse(habit.frequencyConfig) as FrequencyConfig,
     categoryId: habit.categoryId,
     startDate: toDateString(habit.startDate),
     isArchived: habit.isArchived,
@@ -116,7 +116,7 @@ export async function createHabit(userId: string, input: CreateHabitInput) {
       icon: input.icon ?? null,
       color: input.color,
       frequencyType: input.frequencyType,
-      frequencyConfig: input.frequencyConfig as unknown as Prisma.InputJsonValue,
+      frequencyConfig: JSON.stringify(input.frequencyConfig),
       categoryId: input.categoryId ?? null,
       startDate,
     },
@@ -144,7 +144,7 @@ export async function updateHabit(habitId: string, userId: string, input: Update
   if (input.color !== undefined) data.color = input.color;
   if (input.frequencyType !== undefined) data.frequencyType = input.frequencyType;
   if (input.frequencyConfig !== undefined) {
-    data.frequencyConfig = input.frequencyConfig as unknown as Prisma.InputJsonValue;
+    data.frequencyConfig = JSON.stringify(input.frequencyConfig);
   }
   if (input.categoryId !== undefined) {
     data.category = input.categoryId
