@@ -22,7 +22,7 @@ A full-stack habit-tracking application with streaks, statistics, and a clean, r
 | Layer      | Technology                                                       |
 | ---------- | ---------------------------------------------------------------- |
 | Monorepo   | pnpm workspaces                                                  |
-| Backend    | Node.js, Express, TypeScript, Prisma ORM, PostgreSQL             |
+| Backend    | Node.js, Express, TypeScript, Prisma ORM, SQLite                 |
 | Frontend   | React 18, TypeScript, Vite, Tailwind CSS, React Router, lucide   |
 | Shared     | Zod validation schemas + shared TypeScript types                 |
 | Testing    | Vitest, Supertest                                                |
@@ -61,7 +61,6 @@ habit-tracker/
 
 - **Node.js** >= 20
 - **pnpm** >= 9 (`npm install -g pnpm`)
-- **PostgreSQL** (or use Docker)
 
 ### 1. Install dependencies
 
@@ -79,7 +78,7 @@ cp apps/api/.env.example apps/api/.env
 
 ### 3. Set up the database
 
-Start PostgreSQL (via Docker) or use an existing instance, then:
+The app uses **SQLite** for local development — no external database server is required. The database file is created automatically at `apps/api/prisma/dev.db` when you run migrations:
 
 ```bash
 # Run migrations
@@ -109,7 +108,7 @@ The Vite dev server proxies `/api` requests to the API automatically.
 
 ## 🐳 Docker (Recommended)
 
-Run the entire stack (PostgreSQL + API + Web) with docker-compose:
+Run the entire stack (API + Web) with docker-compose. The app uses **SQLite**, so no separate database container is required:
 
 ```bash
 docker compose up --build
