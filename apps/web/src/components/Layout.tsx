@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ListChecks, Tags, BarChart3, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { PwaInstallPrompt } from './PwaInstallPrompt';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -117,6 +118,9 @@ export function Layout() {
           <Outlet />
         </div>
       </main>
+
+      {/* PWA install prompt */}
+      <PwaInstallPrompt />
     </div>
   );
 }

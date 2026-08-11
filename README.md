@@ -16,6 +16,7 @@ A full-stack habit-tracking application with streaks, statistics, and a clean, r
 - **Categories** — Organize habits with color-coded categories.
 - **Dark mode** — Toggleable theme with system preference detection.
 - **Responsive** — Mobile-friendly layout.
+- **PWA (Progressive Web App)** — Installable on mobile devices with offline support, app icons, and a web manifest.
 
 ## 🏗️ Tech Stack
 

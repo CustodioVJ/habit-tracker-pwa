@@ -52,5 +52,5 @@ export const fromZodError = (error: ZodError) => {
     path: issue.path.join('.'),
     message: issue.message,
   }));
-  return unprocessable('Validation failed', details);
+  return badRequest('Validation failed', details);
 };

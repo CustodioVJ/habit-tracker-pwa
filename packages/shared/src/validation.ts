@@ -52,8 +52,8 @@ export const frequencyConfigSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-/** Create a habit. */
-export const createHabitSchema = z.object({
+/** Base habit object schema (shared by create and update). */
+const habitObjectSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100),
   description: z.string().trim().max(500).optional().nullable(),
   icon: z.string().trim().max(50).optional().nullable(),
@@ -64,8 +64,21 @@ export const createHabitSchema = z.object({
   startDate: dateSchema.optional(),
 });
 
+/** Create a habit. */
+export const createHabitSchema = habitObjectSchema.superRefine((data, ctx) => {
+  // Ensure the frequency type matches the frequency config.
+  if (data.frequencyType !== data.frequencyConfig.type) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['frequencyConfig'],
+      message: `frequencyConfig.type must match frequencyType (${data.frequencyType})`,
+    });
+  }
+});
+
 /** Update a habit. All fields optional. */
-export const updateHabitSchema = createHabitSchema.partial();
+export const updateHabitSchema = habitObjectSchema.partial();
+
 
 /** Create a category. */
 export const createCategorySchema = z.object({
