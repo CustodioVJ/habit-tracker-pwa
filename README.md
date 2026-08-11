@@ -125,6 +125,40 @@ docker compose exec api npx prisma migrate deploy
 docker compose exec api npx prisma db seed
 ```
 
+## 🚀 Deployment
+
+The app is split into two deployable parts: the **frontend (PWA)** and the **API**.
+
+### Frontend → Vercel
+
+The frontend is a static Vite build with PWA support. Deploy it to Vercel:
+
+1. Push the repo to GitHub (already done: `CustodioVJ/habit-tracker-pwa`).
+2. In Vercel, import the repo and set:
+   - **Root Directory:** `apps/web`
+   - **Build Command:** `pnpm build`
+   - **Output Directory:** `dist`
+3. Set the environment variable `VITE_API_URL` to your deployed API URL (e.g. `https://habit-tracker-api.onrender.com/api/v1`).
+4. Deploy. Vercel auto-deploys on every push.
+
+The `apps/web/vercel.json` handles SPA rewrites and PWA caching headers.
+
+### API → Render
+
+The API needs a persistent server (for the database connection). Deploy it to Render:
+
+1. In Render, create a **New Web Service** and connect your GitHub repo.
+2. Set **Root Directory** to `apps/api`.
+3. Render will use the `render.yaml` blueprint (or configure manually):
+   - **Build Command:** `pnpm install --frozen-lockfile && pnpm --filter @habit/shared run build && pnpm --filter @habit/api run build && pnpm --filter @habit/api run db:generate`
+   - **Start Command:** `pnpm --filter @habit/api run db:deploy && pnpm --filter @habit/api run start`
+4. Add a **PostgreSQL database** (Render's free tier or Neon/Supabase) and set `DATABASE_URL`.
+5. Set the other env vars: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` (your Vercel URL), `FRONTEND_URL`.
+
+### Database → PostgreSQL
+
+Production uses **PostgreSQL** (the Prisma schema is configured for it). For local dev you can still use SQLite by setting `DATABASE_URL="file:./dev.db"` in `apps/api/.env`, but the schema provider is `postgresql`. To run locally with PostgreSQL, set `DATABASE_URL` to a local or hosted Postgres instance and run `pnpm db:migrate`.
+
 ## 🧪 Testing
 
 ```bash

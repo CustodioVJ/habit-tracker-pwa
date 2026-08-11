@@ -1,0 +1,31 @@
+# Render Blueprint for the Habit Tracker API.
+# Deploy the API as a persistent web service (SQLite/PostgreSQL-friendly).
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: habit-tracker-api
+    runtime: node
+    rootDir: apps/api
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @habit/shared run build && pnpm --filter @habit/api run build && pnpm --filter @habit/api run db:generate
+    startCommand: pnpm --filter @habit/api run db:deploy && pnpm --filter @habit/api run start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

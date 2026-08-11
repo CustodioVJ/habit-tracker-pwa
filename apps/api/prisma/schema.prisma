@@ -1,12 +1,12 @@
 // Prisma schema for the habit tracker app.
-// Uses SQLite for local development (no external database server required).
+// Uses PostgreSQL for production (e.g. Neon, Supabase, Render) and SQLite for local dev.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

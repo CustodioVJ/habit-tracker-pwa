@@ -8,7 +8,13 @@ import {
   CheckIn,
 } from '@habit/shared';
 
-const BASE_URL = '/api/v1';
+/**
+ * API base URL.
+ * - In development, Vite proxies `/api` to the local API (http://localhost:4000).
+ * - In production, use VITE_API_URL if set (e.g. your deployed API URL),
+ *   otherwise fall back to the same-origin `/api/v1` path.
+ */
+const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api/v1';
 
 /** Access token stored in memory (not localStorage) for security. */
 let accessToken: string | null = null;
