@@ -1,9 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { fileURLToPath, URL } from 'node:url';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      // Resolve the shared workspace package directly from source so the web
+      // app can be built standalone (e.g. on Vercel) without pre-building it.
+      '@habit/shared': fileURLToPath(new URL('../../packages/shared/src', import.meta.url)),
+    },
+  },
   plugins: [
     react(),
     VitePWA({

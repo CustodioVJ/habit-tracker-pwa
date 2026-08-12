@@ -135,13 +135,15 @@ The frontend is a static Vite build with PWA support. Deploy it to Vercel:
 
 1. Push the repo to GitHub (already done: `CustodioVJ/habit-tracker-pwa`).
 2. In Vercel, import the repo and set:
-   - **Root Directory:** `apps/web`
-   - **Build Command:** `pnpm build`
-   - **Output Directory:** `dist`
+   - **Root Directory:** `.` (repo root — required so the `@habit/shared` workspace package is available)
+   - **Framework Preset:** `Vite`
+   - **Build Command:** `pnpm --filter @habit/web build`
+   - **Output Directory:** `apps/web/dist`
+   - **Install Command:** `pnpm install`
 3. Set the environment variable `VITE_API_URL` to your deployed API URL (e.g. `https://habit-tracker-api.onrender.com/api/v1`).
 4. Deploy. Vercel auto-deploys on every push.
 
-The `apps/web/vercel.json` handles SPA rewrites and PWA caching headers.
+The root `vercel.json` handles the monorepo build, SPA rewrites, and PWA caching headers. The web app resolves `@habit/shared` directly from source via `vite.config.ts` and `tsconfig.json`, so no separate shared build step is needed.
 
 ### API → Render
 
