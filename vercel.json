@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://habit-tracker-api.onrender.com/api/$1"
+      "destination": "https://habit-tracker-api-ulu9.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",

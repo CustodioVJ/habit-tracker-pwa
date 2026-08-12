@@ -140,7 +140,7 @@ The frontend is a static Vite build with PWA support. Deploy it to Vercel:
    - **Build Command:** `pnpm --filter @habit/web build`
    - **Output Directory:** `apps/web/dist`
    - **Install Command:** `pnpm install`
-3. Set the environment variable `VITE_API_URL` to your deployed API URL (e.g. `https://habit-tracker-api.onrender.com/api/v1`).
+3. Set the environment variable `VITE_API_URL` to your deployed API URL (e.g. `https://habit-tracker-api-ulu9.onrender.com/api/v1`).
 4. Deploy. Vercel auto-deploys on every push.
 
 The root `vercel.json` handles the monorepo build, SPA rewrites, and PWA caching headers. The web app resolves `@habit/shared` directly from source via `vite.config.ts` and `tsconfig.json`, so no separate shared build step is needed.
