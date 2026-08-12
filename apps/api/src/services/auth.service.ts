@@ -17,6 +17,7 @@ export function toPublicUser(user: {
   id: string;
   email: string;
   name: string;
+  lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -24,6 +25,7 @@ export function toPublicUser(user: {
     id: user.id,
     email: user.email,
     name: user.name,
+    lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   };
@@ -60,6 +62,12 @@ export async function loginUser(input: LoginInput) {
   if (!valid) {
     throw unauthorized('Invalid email or password');
   }
+
+  // Record the last successful login time.
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
 
   return issueTokens(user.id, user.email);
 }

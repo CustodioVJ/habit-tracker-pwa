@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Layout } from './components/Layout';
@@ -9,8 +10,15 @@ import { DashboardPage } from './pages/DashboardPage';
 import { HabitsPage } from './pages/HabitsPage';
 import { HabitDetailPage } from './pages/HabitDetailPage';
 import { CategoriesPage } from './pages/CategoriesPage';
-import { StatsPage } from './pages/StatsPage';
 import { LoadingScreen } from './components/LoadingScreen';
+
+// Lazy-load the stats page so the heavy recharts bundle is only fetched on demand.
+const StatsPage = lazy(() =>
+  import('./pages/StatsPage').then((m) => ({ default: m.StatsPage }))
+);
+const ProfilePage = lazy(() =>
+  import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -72,7 +80,22 @@ export default function App() {
         <Route path="/habits" element={<HabitsPage />} />
         <Route path="/habits/:id" element={<HabitDetailPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
-        <Route path="/stats" element={<StatsPage />} />
+        <Route
+          path="/stats"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <StatsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <ProfilePage />
+            </Suspense>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

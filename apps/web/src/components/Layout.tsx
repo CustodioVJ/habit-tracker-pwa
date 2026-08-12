@@ -1,5 +1,14 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Tags, BarChart3, LogOut, Moon, Sun } from 'lucide-react';
+import {
+  LayoutDashboard,
+  ListChecks,
+  Tags,
+  BarChart3,
+  User,
+  LogOut,
+  Moon,
+  Sun,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { PwaInstallPrompt } from './PwaInstallPrompt';
@@ -9,6 +18,7 @@ const navItems = [
   { to: '/habits', label: 'Habits', icon: ListChecks, end: false },
   { to: '/categories', label: 'Categories', icon: Tags, end: false },
   { to: '/stats', label: 'Statistics', icon: BarChart3, end: false },
+  { to: '/profile', label: 'Profile', icon: User, end: false },
 ];
 
 export function Layout() {
