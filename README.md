@@ -150,12 +150,13 @@ The root `vercel.json` handles the monorepo build, SPA rewrites, and PWA caching
 The API needs a persistent server (for the database connection). Deploy it to Render:
 
 1. In Render, create a **New Web Service** and connect your GitHub repo.
-2. Set **Root Directory** to `apps/api`.
+2. Set **Root Directory** to `.` (repo root — required so the `@habit/shared` workspace package is available).
 3. Render will use the `render.yaml` blueprint (or configure manually):
-   - **Build Command:** `pnpm install --frozen-lockfile && pnpm --filter @habit/shared run build && pnpm --filter @habit/api run build && pnpm --filter @habit/api run db:generate`
+   - **Build Command:** `pnpm install --frozen-lockfile && pnpm --filter @habit/shared run build && pnpm --filter @habit/api run db:generate && pnpm --filter @habit/api run build`
    - **Start Command:** `pnpm --filter @habit/api run db:deploy && pnpm --filter @habit/api run start`
 4. Add a **PostgreSQL database** (Render's free tier or Neon/Supabase) and set `DATABASE_URL`.
 5. Set the other env vars: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` (your Vercel URL), `FRONTEND_URL`.
+6. **Important:** The build runs `prisma generate` *before* `tsc` so the Prisma client types are up to date when the API compiles.
 
 ### Database → PostgreSQL
 
