@@ -81,7 +81,7 @@ export async function listHabits(
   const habits = await prisma.habit.findMany({
     where: {
       userId,
-      isArchived: opts.includeArchived ? undefined : false,
+      isArchived: opts.includeArchived ? true : false,
       categoryId: opts.categoryId,
     },
     include: { category: true, checkIns: true },
