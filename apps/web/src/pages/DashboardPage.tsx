@@ -89,8 +89,8 @@ export function DashboardPage() {
         />
         <StatCard
           icon={<CalendarDays className="text-purple-500" size={20} />}
-          label="This week"
-          value={`${stats.completedThisWeek} check-ins`}
+          label="Active days this week"
+          value={`${stats.completedThisWeek} days`}
         />
       </div>
 
