@@ -1,6 +1,6 @@
 # Habit Tracker
 
-A full-stack habit-tracking application with streaks, statistics, and a clean, responsive dashboard. Built as a pnpm monorepo with a Node.js/Express REST API, a React + TypeScript + Tailwind frontend, and a shared package for types and validation.
+A full-stack habit-tracking application with streaks, statistics, and a clean, responsive dashboard. Built as a pnpm monorepo with a Node.js/Express REST API, a React + TypeScript + Tailwind frontend, and a shared package for types and validation. Ships as a **Progressive Web App (PWA)** so it can be installed and used on mobile devices.
 
 ## ✨ Features
 
@@ -23,8 +23,9 @@ A full-stack habit-tracking application with streaks, statistics, and a clean, r
 | Layer      | Technology                                                       |
 | ---------- | ---------------------------------------------------------------- |
 | Monorepo   | pnpm workspaces                                                  |
-| Backend    | Node.js, Express, TypeScript, Prisma ORM, SQLite                 |
+| Backend    | Node.js, Express, TypeScript, Prisma ORM, PostgreSQL             |
 | Frontend   | React 18, TypeScript, Vite, Tailwind CSS, React Router, lucide   |
+| PWA        | vite-plugin-pwa (service worker + web manifest)                  |
 | Shared     | Zod validation schemas + shared TypeScript types                 |
 | Testing    | Vitest, Supertest                                                |
 | Infra      | Docker, docker-compose, nginx                                    |
@@ -44,15 +45,19 @@ habit-tracker/
 │   │   │   ├── routes/      # Express routers
 │   │   │   └── services/    # Business logic
 │   │   └── tests/           # API tests
-│   └── web/                 # React frontend
+│   └── web/                 # React frontend (PWA)
+│       ├── public/          # PWA icons, manifest assets
+│       ├── scripts/         # Icon generation scripts
 │       └── src/
-│           ├── components/  # Reusable UI
+│           ├── components/  # Reusable UI (incl. PwaInstallPrompt)
 │           ├── context/     # Auth & theme context
 │           ├── lib/         # API client
 │           └── pages/       # Route pages
 ├── packages/
 │   └── shared/              # Shared types + validation
 ├── docker-compose.yml
+├── render.yaml              # Render blueprint (API)
+├── vercel.json              # Vercel config (web)
 └── package.json
 ```
 
@@ -79,7 +84,7 @@ cp apps/api/.env.example apps/api/.env
 
 ### 3. Set up the database
 
-The app uses **SQLite** for local development — no external database server is required. The database file is created automatically at `apps/api/prisma/dev.db` when you run migrations:
+The app uses **PostgreSQL** in production. For local development you can use SQLite (no external server needed) by setting `DATABASE_URL="file:./dev.db"` in `apps/api/.env`, or point it at a local/hosted Postgres instance.
 
 ```bash
 # Run migrations
@@ -109,7 +114,7 @@ The Vite dev server proxies `/api` requests to the API automatically.
 
 ## 🐳 Docker (Recommended)
 
-Run the entire stack (API + Web) with docker-compose. The app uses **SQLite**, so no separate database container is required:
+Run the entire stack (API + Web) with docker-compose:
 
 ```bash
 docker compose up --build
@@ -127,7 +132,13 @@ docker compose exec api npx prisma db seed
 
 ## 🚀 Deployment
 
-The app is split into two deployable parts: the **frontend (PWA)** and the **API**.
+The app is split into two deployable parts: the **frontend (PWA)** and the **API**. The live production URLs are:
+
+| Part      | URL                                                              |
+| --------- | ---------------------------------------------------------------- |
+| Frontend  | https://habit-tracker-pwa.vercel.app                             |
+| API       | https://habit-tracker-api-ulu9.onrender.com                      |
+| Database  | Neon PostgreSQL (serverless)                                     |
 
 ### Frontend → Vercel
 
@@ -145,6 +156,8 @@ The frontend is a static Vite build with PWA support. Deploy it to Vercel:
 
 The root `vercel.json` handles the monorepo build, SPA rewrites, and PWA caching headers. The web app resolves `@habit/shared` directly from source via `vite.config.ts` and `tsconfig.json`, so no separate shared build step is needed.
 
+> **Note:** `VITE_API_URL` is the recommended way to connect the frontend to the API. Vercel's external rewrites only forward GET requests, so POST/PUT/DELETE calls (register, login, check-ins) must go directly to the API via `VITE_API_URL`.
+
 ### API → Render
 
 The API needs a persistent server (for the database connection). Deploy it to Render:
@@ -154,13 +167,13 @@ The API needs a persistent server (for the database connection). Deploy it to Re
 3. Render will use the `render.yaml` blueprint (or configure manually):
    - **Build Command:** `pnpm install --frozen-lockfile && pnpm --filter @habit/shared run build && pnpm --filter @habit/api run db:generate && pnpm --filter @habit/api run build`
    - **Start Command:** `pnpm --filter @habit/api run db:deploy && pnpm --filter @habit/api run start`
-4. Add a **PostgreSQL database** (Render's free tier or Neon/Supabase) and set `DATABASE_URL`.
+4. Add a **PostgreSQL database** (Neon, Render, or Supabase) and set `DATABASE_URL`.
 5. Set the other env vars: `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN` (your Vercel URL), `FRONTEND_URL`.
 6. **Important:** The build runs `prisma generate` *before* `tsc` so the Prisma client types are up to date when the API compiles.
 
-### Database → PostgreSQL
+### Database → Neon (PostgreSQL)
 
-Production uses **PostgreSQL** (the Prisma schema is configured for it). For local dev you can still use SQLite by setting `DATABASE_URL="file:./dev.db"` in `apps/api/.env`, but the schema provider is `postgresql`. To run locally with PostgreSQL, set `DATABASE_URL` to a local or hosted Postgres instance and run `pnpm db:migrate`.
+Production uses **PostgreSQL** hosted on **Neon** (serverless Postgres). The Prisma schema provider is `postgresql`. When deploying, set `DATABASE_URL` to your Neon connection string. For Prisma migrations, use the **unpooled** connection string (host without `-pooler`).
 
 ## 🧪 Testing
 
