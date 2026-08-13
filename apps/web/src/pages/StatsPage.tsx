@@ -32,14 +32,25 @@ const ROLLING_WINDOW: Record<Period, number> = {
   year: 30,
 };
 
-/** Count completed vs not-completed days from the heatmap. */
+/** Number of days in a calendar year (leap-aware). */
+function daysInYear(year: number): number {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0 ? 366 : 365;
+}
+
+/**
+ * Build the donut from the calendar year, not just from recorded days.
+ * Every day of the year counts: completed days are green, and every other
+ * calendar day (including days without any record) is red. This way a user
+ * who started today sees one thin green slice over an almost all-red donut.
+ */
 function donutData(heatmap: HeatmapCell[]) {
   let completed = 0;
-  let missed = 0;
   for (const cell of heatmap) {
     if (cell.completed) completed += 1;
-    else missed += 1;
   }
+  const year =
+    heatmap.length > 0 ? Number(heatmap[0].date.slice(0, 4)) : new Date().getFullYear();
+  const missed = Math.max(0, daysInYear(year) - completed);
   return [
     { name: 'Completed', value: completed, color: DONUT_COLORS.completed },
     { name: 'Not completed', value: missed, color: DONUT_COLORS.missed },
