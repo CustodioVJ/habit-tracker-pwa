@@ -1,7 +1,7 @@
 import { UpsertCheckInInput } from '@habit/shared';
 import { prisma } from '../lib/prisma';
 import { notFound, forbidden, badRequest } from '../lib/errors';
-import { fromDateString, toDateString, todayString, addDays } from '../lib/dates';
+import { todayString, addDays } from '../lib/dates';
 
 /** Maximum number of days in the past a check-in can be backfilled. */
 const BACKFILL_WINDOW_DAYS = 90;
@@ -37,7 +37,7 @@ export async function upsertCheckIn(
     throw badRequest('Cannot check in for a future date');
   }
 
-  const date = fromDateString(input.date);
+  const date = input.date;
 
   const checkIn = await prisma.checkIn.upsert({
     where: { habitId_date: { habitId, date } },
@@ -56,7 +56,7 @@ export async function upsertCheckIn(
   return {
     id: checkIn.id,
     habitId: checkIn.habitId,
-    date: toDateString(checkIn.date),
+    date: checkIn.date,
     completed: checkIn.completed,
     note: checkIn.note,
     createdAt: checkIn.createdAt.toISOString(),
@@ -73,7 +73,7 @@ export async function listCheckIns(habitId: string, userId: string) {
   return checkIns.map((c) => ({
     id: c.id,
     habitId: c.habitId,
-    date: toDateString(c.date),
+    date: c.date,
     completed: c.completed,
     note: c.note,
     createdAt: c.createdAt.toISOString(),
@@ -84,6 +84,6 @@ export async function listCheckIns(habitId: string, userId: string) {
 export async function deleteCheckIn(habitId: string, userId: string, date: string): Promise<void> {
   await getOwnedHabit(habitId, userId);
   await prisma.checkIn.deleteMany({
-    where: { habitId, date: fromDateString(date) },
+    where: { habitId, date },
   });
 }

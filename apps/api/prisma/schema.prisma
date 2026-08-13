@@ -69,7 +69,7 @@ model Habit {
 model CheckIn {
   id        String   @id @default(uuid())
   habitId   String   @map("habit_id")
-  date      DateTime
+  date      String
   completed Boolean  @default(false)
   note      String?
   createdAt DateTime @default(now()) @map("created_at")

@@ -34,11 +34,11 @@ function toHabitWithMeta(habit: HabitWithRelations, today: string): HabitWithMet
   const base = toHabitDto(habit);
   const completedDates = habit.checkIns
     .filter((c) => c.completed)
-    .map((c) => toDateString(c.date));
+    .map((c) => c.date);
 
   const streak = computeStreaks(base.startDate, base.frequencyConfig, completedDates, today);
 
-  const todayCheckIn = habit.checkIns.find((c) => toDateString(c.date) === today);
+  const todayCheckIn = habit.checkIns.find((c) => c.date === today);
 
   return {
     ...base,

@@ -53,7 +53,7 @@ export async function getDashboard(userId: string, today?: string): Promise<Dash
     },
     select: { date: true },
   });
-  const activeDays = new Set(checkIns.map((c) => toDateString(c.date)));
+  const activeDays = new Set(checkIns.map((c) => c.date));
 
   const { current, longest } = computeDayStreaks(activeDays, todayStr);
 

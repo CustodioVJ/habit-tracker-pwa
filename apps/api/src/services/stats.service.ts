@@ -80,7 +80,7 @@ export async function getHabitStats(
   const effectiveStart = start < habitStart ? habitStart : start;
 
   const completedSet = new Set(
-    habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
+    habit.checkIns.filter((c) => c.completed).map((c) => c.date),
   );
 
   const totalDue = countDueDays(effectiveStart, end, config);
@@ -92,7 +92,7 @@ export async function getHabitStats(
   // Streak info is computed over the habit's full history, not just the period.
   const allCompleted = habit.checkIns
     .filter((c) => c.completed)
-    .map((c) => toDateString(c.date));
+    .map((c) => c.date);
   const streaks = computeStreaks(habitStart, config, allCompleted, todayStr);
 
   return {
@@ -130,7 +130,7 @@ export async function getAggregateCompletionRate(
     const habitStart = toDateString(habit.startDate);
     const effectiveStart = start < habitStart ? habitStart : start;
     const completedSet = new Set(
-      habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
+      habit.checkIns.filter((c) => c.completed).map((c) => c.date),
     );
     totalDue += countDueDays(effectiveStart, end, config);
     totalCompleted += countCompletedDueDays(effectiveStart, end, config, completedSet);
@@ -164,7 +164,7 @@ export async function getYearHeatmap(
   const effectiveStart = start < habitStart ? habitStart : start;
 
   const completedSet = new Set(
-    habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
+    habit.checkIns.filter((c) => c.completed).map((c) => c.date),
   );
 
   return buildHeatmap(effectiveStart, end, config, completedSet);
