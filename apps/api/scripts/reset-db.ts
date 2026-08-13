@@ -3,8 +3,14 @@
 // Uses the direct (unpooled) connection to avoid advisory-lock timeouts.
 import { execSync } from 'child_process';
 
-const unpooled =
-  'REDACTED_NEON_DATABASE_URL';
+const unpooled = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
+
+if (!unpooled) {
+  console.error(
+    'DATABASE_URL_UNPOOLED or DATABASE_URL must be set in the environment.',
+  );
+  process.exit(1);
+}
 
 function run(cmd: string): void {
   console.log(`\n> ${cmd}`);
