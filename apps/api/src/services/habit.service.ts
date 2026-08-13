@@ -75,9 +75,9 @@ async function getOwnedHabit(habitId: string, userId: string): Promise<HabitWith
 /** List habits for a user, optionally filtered. */
 export async function listHabits(
   userId: string,
-  opts: { includeArchived?: boolean; categoryId?: string } = {},
+  opts: { includeArchived?: boolean; categoryId?: string; today?: string } = {},
 ): Promise<HabitWithMeta[]> {
-  const today = todayString();
+  const today = opts.today ?? todayString();
   const habits = await prisma.habit.findMany({
     where: {
       userId,
@@ -91,9 +91,13 @@ export async function listHabits(
 }
 
 /** Get a single habit with meta. */
-export async function getHabit(habitId: string, userId: string): Promise<HabitWithMeta> {
+export async function getHabit(
+  habitId: string,
+  userId: string,
+  today?: string,
+): Promise<HabitWithMeta> {
   const habit = await getOwnedHabit(habitId, userId);
-  return toHabitWithMeta(habit, todayString());
+  return toHabitWithMeta(habit, today ?? todayString());
 }
 
 /** Create a habit. */

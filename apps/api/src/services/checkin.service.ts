@@ -19,16 +19,21 @@ async function getOwnedHabit(habitId: string, userId: string) {
 }
 
 /** Upsert a check-in for a habit on a given date. */
-export async function upsertCheckIn(habitId: string, userId: string, input: UpsertCheckInInput) {
+export async function upsertCheckIn(
+  habitId: string,
+  userId: string,
+  input: UpsertCheckInInput,
+  today?: string,
+) {
   const habit = await getOwnedHabit(habitId, userId);
 
   // Enforce backfill window: cannot check in too far in the past or future.
-  const today = todayString();
-  const earliest = addDays(today, -BACKFILL_WINDOW_DAYS);
+  const todayStr = today ?? todayString();
+  const earliest = addDays(todayStr, -BACKFILL_WINDOW_DAYS);
   if (input.date < earliest) {
     throw badRequest(`Cannot backfill more than ${BACKFILL_WINDOW_DAYS} days in the past`);
   }
-  if (input.date > today) {
+  if (input.date > todayStr) {
     throw badRequest('Cannot check in for a future date');
   }
 

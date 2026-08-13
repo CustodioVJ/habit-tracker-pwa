@@ -16,6 +16,20 @@ import {
  */
 const BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api/v1';
 
+/**
+ * The user's local calendar date (YYYY-MM-DD). Sent to the API so the server
+ * computes "today" in the user's timezone rather than the server's, preventing
+ * check-ins from appearing to vanish across a logout/login when the server is
+ * in a different timezone.
+ */
+export function localToday(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 /** Access token stored in memory (not localStorage) for security. */
 let accessToken: string | null = null;
 
@@ -156,7 +170,7 @@ export const authApi = {
 
 // ---- Dashboard ----
 export const dashboardApi = {
-  get: () => request<DashboardData>('/dashboard'),
+  get: () => request<DashboardData>(`/dashboard?today=${localToday()}`),
 };
 
 // ---- Habits ----
@@ -165,10 +179,11 @@ export const habitApi = {
     const qs = new URLSearchParams();
     if (params?.includeArchived) qs.set('includeArchived', 'true');
     if (params?.categoryId) qs.set('categoryId', params.categoryId);
+    qs.set('today', localToday());
     const suffix = qs.toString() ? `?${qs.toString()}` : '';
     return request<{ habits: HabitWithMeta[] }>(`/habits${suffix}`);
   },
-  get: (id: string) => request<{ habit: HabitWithMeta }>(`/habits/${id}`),
+  get: (id: string) => request<{ habit: HabitWithMeta }>(`/habits/${id}?today=${localToday()}`),
   create: (data: unknown) =>
     request<{ habit: HabitWithMeta }>('/habits', { method: 'POST', body: data }),
   update: (id: string, data: unknown) =>
@@ -179,14 +194,16 @@ export const habitApi = {
     request<{ habit: HabitWithMeta }>(`/habits/${id}/unarchive`, { method: 'POST' }),
   remove: (id: string) => request<void>(`/habits/${id}`, { method: 'DELETE' }),
   checkIn: (habitId: string, data: { date: string; completed: boolean; note?: string }) =>
-    request<{ checkIn: CheckIn }>(`/habits/${habitId}/check-ins`, {
+    request<{ checkIn: CheckIn }>(`/habits/${habitId}/check-ins?today=${localToday()}`, {
       method: 'PUT',
       body: data,
     }),
   stats: (habitId: string, period: 'week' | 'month' | 'year') =>
-    request<{ stats: HabitStats }>(`/habits/${habitId}/stats?period=${period}`),
+    request<{ stats: HabitStats }>(
+      `/habits/${habitId}/stats?period=${period}&today=${localToday()}`,
+    ),
   heatmap: (habitId: string) =>
-    request<{ heatmap: HeatmapCell[] }>(`/habits/${habitId}/heatmap`),
+    request<{ heatmap: HeatmapCell[] }>(`/habits/${habitId}/heatmap?today=${localToday()}`),
 };
 
 // ---- Categories ----

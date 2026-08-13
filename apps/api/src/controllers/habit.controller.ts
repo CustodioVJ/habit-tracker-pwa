@@ -14,13 +14,18 @@ export async function list(req: Request, res: Response) {
   const habits = await listHabits(req.user!.id, {
     includeArchived: req.query.includeArchived === 'true',
     categoryId: req.query.categoryId as string | undefined,
+    today: req.query.today as string | undefined,
   });
   res.json({ habits });
 }
 
 /** GET /habits/:id */
 export async function get(req: Request, res: Response) {
-  const habit = await getHabit(req.params.id, req.user!.id);
+  const habit = await getHabit(
+    req.params.id,
+    req.user!.id,
+    req.query.today as string | undefined,
+  );
   res.json({ habit });
 }
 

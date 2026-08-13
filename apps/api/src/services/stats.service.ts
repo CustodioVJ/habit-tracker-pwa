@@ -58,6 +58,7 @@ export async function getHabitStats(
   habitId: string,
   userId: string,
   period: Period,
+  today?: string,
 ): Promise<HabitStats> {
   const habit = await prisma.habit.findUnique({
     where: { id: habitId },
@@ -71,8 +72,8 @@ export async function getHabitStats(
   }
 
   const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
-  const today = todayString();
-  const { start, end } = periodRange(period, today);
+  const todayStr = today ?? todayString();
+  const { start, end } = periodRange(period, todayStr);
 
   // Clamp the range to the habit's start date.
   const habitStart = toDateString(habit.startDate);
@@ -92,7 +93,7 @@ export async function getHabitStats(
   const allCompleted = habit.checkIns
     .filter((c) => c.completed)
     .map((c) => toDateString(c.date));
-  const streaks = computeStreaks(habitStart, config, allCompleted, today);
+  const streaks = computeStreaks(habitStart, config, allCompleted, todayStr);
 
   return {
     habitId,
@@ -111,14 +112,15 @@ export async function getHabitStats(
 export async function getAggregateCompletionRate(
   userId: string,
   period: Period,
+  today?: string,
 ): Promise<number> {
   const habits = await prisma.habit.findMany({
     where: { userId, isArchived: false },
     include: { checkIns: true },
   });
 
-  const today = todayString();
-  const { start, end } = periodRange(period, today);
+  const todayStr = today ?? todayString();
+  const { start, end } = periodRange(period, todayStr);
 
   let totalDue = 0;
   let totalCompleted = 0;
@@ -138,7 +140,11 @@ export async function getAggregateCompletionRate(
 }
 
 /** Get the full-year heatmap for a habit (GitHub-contributions style). */
-export async function getYearHeatmap(habitId: string, userId: string): Promise<HeatmapCell[]> {
+export async function getYearHeatmap(
+  habitId: string,
+  userId: string,
+  today?: string,
+): Promise<HeatmapCell[]> {
   const habit = await prisma.habit.findUnique({
     where: { id: habitId },
     include: { checkIns: true },
@@ -151,9 +157,9 @@ export async function getYearHeatmap(habitId: string, userId: string): Promise<H
   }
 
   const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
-  const today = todayString();
-  const start = startOfYear(today);
-  const end = endOfYear(today);
+  const todayStr = today ?? todayString();
+  const start = startOfYear(todayStr);
+  const end = endOfYear(todayStr);
   const habitStart = toDateString(habit.startDate);
   const effectiveStart = start < habitStart ? habitStart : start;
 
