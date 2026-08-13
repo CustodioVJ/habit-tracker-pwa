@@ -58,7 +58,6 @@ export async function getHabitStats(
   habitId: string,
   userId: string,
   period: Period,
-  today?: string,
 ): Promise<HabitStats> {
   const habit = await prisma.habit.findUnique({
     where: { id: habitId },
@@ -72,15 +71,15 @@ export async function getHabitStats(
   }
 
   const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
-  const todayStr = today ?? todayString();
-  const { start, end } = periodRange(period, todayStr);
+  const today = todayString();
+  const { start, end } = periodRange(period, today);
 
   // Clamp the range to the habit's start date.
   const habitStart = toDateString(habit.startDate);
   const effectiveStart = start < habitStart ? habitStart : start;
 
   const completedSet = new Set(
-    habit.checkIns.filter((c) => c.completed).map((c) => c.date),
+    habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
   );
 
   const totalDue = countDueDays(effectiveStart, end, config);
@@ -92,8 +91,8 @@ export async function getHabitStats(
   // Streak info is computed over the habit's full history, not just the period.
   const allCompleted = habit.checkIns
     .filter((c) => c.completed)
-    .map((c) => c.date);
-  const streaks = computeStreaks(habitStart, config, allCompleted, todayStr);
+    .map((c) => toDateString(c.date));
+  const streaks = computeStreaks(habitStart, config, allCompleted, today);
 
   return {
     habitId,
@@ -112,15 +111,14 @@ export async function getHabitStats(
 export async function getAggregateCompletionRate(
   userId: string,
   period: Period,
-  today?: string,
 ): Promise<number> {
   const habits = await prisma.habit.findMany({
     where: { userId, isArchived: false },
     include: { checkIns: true },
   });
 
-  const todayStr = today ?? todayString();
-  const { start, end } = periodRange(period, todayStr);
+  const today = todayString();
+  const { start, end } = periodRange(period, today);
 
   let totalDue = 0;
   let totalCompleted = 0;
@@ -130,7 +128,7 @@ export async function getAggregateCompletionRate(
     const habitStart = toDateString(habit.startDate);
     const effectiveStart = start < habitStart ? habitStart : start;
     const completedSet = new Set(
-      habit.checkIns.filter((c) => c.completed).map((c) => c.date),
+      habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
     );
     totalDue += countDueDays(effectiveStart, end, config);
     totalCompleted += countCompletedDueDays(effectiveStart, end, config, completedSet);
@@ -140,11 +138,7 @@ export async function getAggregateCompletionRate(
 }
 
 /** Get the full-year heatmap for a habit (GitHub-contributions style). */
-export async function getYearHeatmap(
-  habitId: string,
-  userId: string,
-  today?: string,
-): Promise<HeatmapCell[]> {
+export async function getYearHeatmap(habitId: string, userId: string): Promise<HeatmapCell[]> {
   const habit = await prisma.habit.findUnique({
     where: { id: habitId },
     include: { checkIns: true },
@@ -157,14 +151,14 @@ export async function getYearHeatmap(
   }
 
   const config = JSON.parse(habit.frequencyConfig) as FrequencyConfig;
-  const todayStr = today ?? todayString();
-  const start = startOfYear(todayStr);
-  const end = endOfYear(todayStr);
+  const today = todayString();
+  const start = startOfYear(today);
+  const end = endOfYear(today);
   const habitStart = toDateString(habit.startDate);
   const effectiveStart = start < habitStart ? habitStart : start;
 
   const completedSet = new Set(
-    habit.checkIns.filter((c) => c.completed).map((c) => c.date),
+    habit.checkIns.filter((c) => c.completed).map((c) => toDateString(c.date)),
   );
 
   return buildHeatmap(effectiveStart, end, config, completedSet);

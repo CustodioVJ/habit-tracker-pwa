@@ -3,12 +3,7 @@ import { upsertCheckIn, listCheckIns, deleteCheckIn } from '../services/checkin.
 
 /** PUT /habits/:habitId/check-ins */
 export async function upsert(req: Request, res: Response) {
-  const checkIn = await upsertCheckIn(
-    req.params.habitId,
-    req.user!.id,
-    req.body,
-    req.query.today as string | undefined,
-  );
+  const checkIn = await upsertCheckIn(req.params.habitId, req.user!.id, req.body);
   res.json({ checkIn });
 }
 

@@ -34,16 +34,16 @@ function computeDayStreaks(activeDays: Set<string>, today: string) {
 }
 
 /** Build the dashboard payload for a user. */
-export async function getDashboard(userId: string, today?: string): Promise<DashboardData> {
-  const todayStr = today ?? todayString();
+export async function getDashboard(userId: string): Promise<DashboardData> {
   const [habits, categories, weekCompletionRate, monthCompletionRate] = await Promise.all([
-    listHabits(userId, { today: todayStr }),
+    listHabits(userId),
     listCategories(userId),
-    getAggregateCompletionRate(userId, 'week', todayStr),
-    getAggregateCompletionRate(userId, 'month', todayStr),
+    getAggregateCompletionRate(userId, 'week'),
+    getAggregateCompletionRate(userId, 'month'),
   ]);
 
-  const weekStart = startOfWeek(todayStr);
+  const today = todayString();
+  const weekStart = startOfWeek(today);
 
   // Collect every distinct day on which the user completed at least one habit.
   const checkIns = await prisma.checkIn.findMany({
@@ -53,14 +53,14 @@ export async function getDashboard(userId: string, today?: string): Promise<Dash
     },
     select: { date: true },
   });
-  const activeDays = new Set(checkIns.map((c) => c.date));
+  const activeDays = new Set(checkIns.map((c) => toDateString(c.date)));
 
-  const { current, longest } = computeDayStreaks(activeDays, todayStr);
+  const { current, longest } = computeDayStreaks(activeDays, today);
 
   // Count distinct days this week (up to today) with at least one completion.
   let completedThisWeek = 0;
   let day = weekStart;
-  while (day <= todayStr) {
+  while (day <= today) {
     if (activeDays.has(day)) completedThisWeek += 1;
     day = addDays(day, 1);
   }
@@ -76,7 +76,7 @@ export async function getDashboard(userId: string, today?: string): Promise<Dash
   return {
     habits,
     categories,
-    today: todayStr,
+    today,
     weekCompletionRate,
     monthCompletionRate,
     stats,

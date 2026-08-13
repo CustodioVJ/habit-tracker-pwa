@@ -34,11 +34,11 @@ function toHabitWithMeta(habit: HabitWithRelations, today: string): HabitWithMet
   const base = toHabitDto(habit);
   const completedDates = habit.checkIns
     .filter((c) => c.completed)
-    .map((c) => c.date);
+    .map((c) => toDateString(c.date));
 
   const streak = computeStreaks(base.startDate, base.frequencyConfig, completedDates, today);
 
-  const todayCheckIn = habit.checkIns.find((c) => c.date === today);
+  const todayCheckIn = habit.checkIns.find((c) => toDateString(c.date) === today);
 
   return {
     ...base,
@@ -75,9 +75,9 @@ async function getOwnedHabit(habitId: string, userId: string): Promise<HabitWith
 /** List habits for a user, optionally filtered. */
 export async function listHabits(
   userId: string,
-  opts: { includeArchived?: boolean; categoryId?: string; today?: string } = {},
+  opts: { includeArchived?: boolean; categoryId?: string } = {},
 ): Promise<HabitWithMeta[]> {
-  const today = opts.today ?? todayString();
+  const today = todayString();
   const habits = await prisma.habit.findMany({
     where: {
       userId,
@@ -91,13 +91,9 @@ export async function listHabits(
 }
 
 /** Get a single habit with meta. */
-export async function getHabit(
-  habitId: string,
-  userId: string,
-  today?: string,
-): Promise<HabitWithMeta> {
+export async function getHabit(habitId: string, userId: string): Promise<HabitWithMeta> {
   const habit = await getOwnedHabit(habitId, userId);
-  return toHabitWithMeta(habit, today ?? todayString());
+  return toHabitWithMeta(habit, todayString());
 }
 
 /** Create a habit. */

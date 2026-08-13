@@ -1,7 +1,7 @@
 import { UpsertCheckInInput } from '@habit/shared';
 import { prisma } from '../lib/prisma';
 import { notFound, forbidden, badRequest } from '../lib/errors';
-import { todayString, addDays } from '../lib/dates';
+import { fromDateString, toDateString, todayString, addDays } from '../lib/dates';
 
 /** Maximum number of days in the past a check-in can be backfilled. */
 const BACKFILL_WINDOW_DAYS = 90;
@@ -19,25 +19,20 @@ async function getOwnedHabit(habitId: string, userId: string) {
 }
 
 /** Upsert a check-in for a habit on a given date. */
-export async function upsertCheckIn(
-  habitId: string,
-  userId: string,
-  input: UpsertCheckInInput,
-  today?: string,
-) {
+export async function upsertCheckIn(habitId: string, userId: string, input: UpsertCheckInInput) {
   const habit = await getOwnedHabit(habitId, userId);
 
   // Enforce backfill window: cannot check in too far in the past or future.
-  const todayStr = today ?? todayString();
-  const earliest = addDays(todayStr, -BACKFILL_WINDOW_DAYS);
+  const today = todayString();
+  const earliest = addDays(today, -BACKFILL_WINDOW_DAYS);
   if (input.date < earliest) {
     throw badRequest(`Cannot backfill more than ${BACKFILL_WINDOW_DAYS} days in the past`);
   }
-  if (input.date > todayStr) {
+  if (input.date > today) {
     throw badRequest('Cannot check in for a future date');
   }
 
-  const date = input.date;
+  const date = fromDateString(input.date);
 
   const checkIn = await prisma.checkIn.upsert({
     where: { habitId_date: { habitId, date } },
@@ -56,7 +51,7 @@ export async function upsertCheckIn(
   return {
     id: checkIn.id,
     habitId: checkIn.habitId,
-    date: checkIn.date,
+    date: toDateString(checkIn.date),
     completed: checkIn.completed,
     note: checkIn.note,
     createdAt: checkIn.createdAt.toISOString(),
@@ -73,7 +68,7 @@ export async function listCheckIns(habitId: string, userId: string) {
   return checkIns.map((c) => ({
     id: c.id,
     habitId: c.habitId,
-    date: c.date,
+    date: toDateString(c.date),
     completed: c.completed,
     note: c.note,
     createdAt: c.createdAt.toISOString(),
@@ -84,6 +79,6 @@ export async function listCheckIns(habitId: string, userId: string) {
 export async function deleteCheckIn(habitId: string, userId: string, date: string): Promise<void> {
   await getOwnedHabit(habitId, userId);
   await prisma.checkIn.deleteMany({
-    where: { habitId, date },
+    where: { habitId, date: fromDateString(date) },
   });
 }
