@@ -34,12 +34,15 @@ export function Layout() {
   return (
     <div className="min-h-screen">
       {/* Sidebar (desktop) */}
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:flex">
-        <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-6 dark:border-gray-800">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
+      <aside className="app-panel fixed inset-y-0 left-0 z-20 hidden w-64 flex-col border-r md:flex">
+        <div className="flex h-20 items-center gap-3 border-b border-black/5 px-6 dark:border-white/10">
+          <div className="brand-mark h-9 w-9">
             <ListChecks size={18} />
           </div>
-          <span className="text-lg font-bold text-gray-900 dark:text-white">Habit Tracker</span>
+          <div>
+            <span className="block font-bold leading-tight text-gray-900 dark:text-white">Habit</span>
+            <span className="block text-xs font-medium text-gray-500 dark:text-gray-400">Build your rhythm</span>
+          </div>
         </div>
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map(({ to, label, icon: Icon, end }) => (
@@ -48,10 +51,10 @@ export function Layout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                `nav-link ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
+                    ? 'nav-link-active'
+                    : 'nav-link-idle'
                 }`
               }
             >
@@ -60,9 +63,9 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-gray-200 p-4 dark:border-gray-800">
+        <div className="border-t border-black/5 p-4 dark:border-white/10">
           <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-300">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-200 font-bold text-brand-900 ring-4 ring-brand-300/10">
               {user?.name?.charAt(0).toUpperCase() ?? 'U'}
             </div>
             <div className="min-w-0">
@@ -84,9 +87,9 @@ export function Layout() {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-900 md:hidden">
+      <header className="app-panel sticky top-0 z-20 flex h-16 items-center justify-between border-b px-4 md:hidden">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
+          <div className="brand-mark h-8 w-8">
             <ListChecks size={18} />
           </div>
           <span className="text-lg font-bold text-gray-900 dark:text-white">Habit Tracker</span>
@@ -102,7 +105,7 @@ export function Layout() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:hidden">
+      <nav className="app-panel fixed inset-x-0 bottom-0 z-20 flex border-t px-1 pb-[env(safe-area-inset-bottom)] md:hidden">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -111,7 +114,7 @@ export function Layout() {
             className={({ isActive }) =>
               `flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium ${
                 isActive
-                  ? 'text-brand-600 dark:text-brand-400'
+                  ? 'text-brand-700 dark:text-brand-300'
                   : 'text-gray-500 dark:text-gray-400'
               }`
             }
@@ -124,7 +127,7 @@ export function Layout() {
 
       {/* Main content */}
       <main className="md:pl-64">
-        <div className="mx-auto max-w-6xl px-4 py-6 pb-24 md:px-8 md:pb-8">
+        <div className="mx-auto max-w-6xl px-4 py-7 pb-24 md:px-10 md:py-10 md:pb-10">
           <Outlet />
         </div>
       </main>
