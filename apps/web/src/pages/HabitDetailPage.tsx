@@ -57,7 +57,10 @@ export function HabitDetailPage() {
   }
   if (!habit) return null;
 
-  const completedCount = heatmap.filter((c) => c.completed).length;
+  // Count every recorded completion, including optional check-ins made on a
+  // day when the habit was not scheduled. The heatmap's `completed` flag is
+  // schedule-aware and is therefore reserved for streak/rate visualization.
+  const completedCount = heatmap.filter((c) => c.count > 0).length;
 
   return (
     <div className="space-y-6">
