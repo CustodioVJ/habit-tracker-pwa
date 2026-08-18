@@ -30,7 +30,6 @@ export function isDueDate(date: string, config: FrequencyConfig): boolean {
   }
 }
 
-
 /**
  * Compute current and longest streaks for a habit.
  *
@@ -62,13 +61,14 @@ function computeDayStreaks(
   completedSet: Set<string>,
   today: string,
 ): StreakInfo {
-  // Walk backwards from today to find the current streak.
+  // Walk backwards from today to find the current streak. An unfinished due
+  // day does not break the streak until that day has passed, matching the
+  // dashboard's active-day streak behavior.
   let current = 0;
-  let cursor = today;
+  let cursor = isDueDate(today, config) && !completedSet.has(today) ? addDays(today, -1) : today;
 
-  // The current streak may include today if it's due and completed, or it may
-  // have ended yesterday. We allow the streak to be "open" if today is not yet
-  // due (e.g., a specific_days habit whose day hasn't arrived).
+  // The current streak may include today when completed, or remain anchored
+  // on the most recent completed due day while today's opportunity is open.
   let streakBroken = false;
   let lastCompletedDate: string | null = null;
 

@@ -33,6 +33,20 @@ describe('computeStreaks - daily', () => {
     expect(result.longest).toBe(3);
   });
 
+  it('keeps yesterday streak current while today is still open', () => {
+    const completed = ['2026-08-05', '2026-08-06', '2026-08-07'];
+    const result = computeStreaks('2026-08-01', daily, completed, '2026-08-08');
+    expect(result.current).toBe(3);
+    expect(result.longest).toBe(3);
+  });
+
+  it('still breaks the current streak on an earlier missed day', () => {
+    const completed = ['2026-08-06'];
+    const result = computeStreaks('2026-08-01', daily, completed, '2026-08-08');
+    expect(result.current).toBe(0);
+    expect(result.longest).toBe(1);
+  });
+
   it('breaks the streak on a missed day', () => {
     const completed = ['2026-08-05', '2026-08-06', '2026-08-08'];
     const result = computeStreaks('2026-08-01', daily, completed, '2026-08-08');
@@ -77,6 +91,14 @@ describe('computeStreaks - specific_days', () => {
     const result = computeStreaks('2026-08-01', monWedFri, completed, '2026-08-15');
     expect(result.current).toBe(1);
     expect(result.longest).toBe(1);
+  });
+
+  it('keeps the prior scheduled streak while today is still open', () => {
+    // Mon(10), Wed(12), Fri(14) completed. Today is Mon(17), not yet completed.
+    const completed = ['2026-08-10', '2026-08-12', '2026-08-14'];
+    const result = computeStreaks('2026-08-01', monWedFri, completed, '2026-08-17');
+    expect(result.current).toBe(3);
+    expect(result.longest).toBe(3);
   });
 });
 
