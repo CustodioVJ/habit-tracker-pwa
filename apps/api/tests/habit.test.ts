@@ -66,6 +66,24 @@ describe('Habit API', () => {
       .send({ date: today, completed: true });
     expect(res.status).toBe(200);
     expect(res.body.checkIn.completed).toBe(true);
+    expect(res.body.habit.todayCompleted).toBe(true);
+    expect(res.body.habit.streak.current).toBeGreaterThanOrEqual(1);
+
+    const uncheck = await request(app)
+      .put(`/api/v1/habits/${habitId}/check-ins`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: today, completed: false });
+    expect(uncheck.status).toBe(200);
+    expect(uncheck.body.habit.todayCompleted).toBe(false);
+    expect(uncheck.body.habit.streak.current).toBe(0);
+
+    const recheck = await request(app)
+      .put(`/api/v1/habits/${habitId}/check-ins`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: today, completed: true });
+    expect(recheck.status).toBe(200);
+    expect(recheck.body.habit.todayCompleted).toBe(true);
+    expect(recheck.body.habit.streak.current).toBeGreaterThanOrEqual(1);
   });
 
   it('allows a check-in on any past date', async () => {

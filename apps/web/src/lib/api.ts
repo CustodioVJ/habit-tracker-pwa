@@ -179,7 +179,7 @@ export const habitApi = {
     request<{ habit: HabitWithMeta }>(`/habits/${id}/unarchive`, { method: 'POST' }),
   remove: (id: string) => request<void>(`/habits/${id}`, { method: 'DELETE' }),
   checkIn: (habitId: string, data: { date: string; completed: boolean; note?: string }) =>
-    request<{ checkIn: CheckIn }>(`/habits/${habitId}/check-ins`, {
+    request<{ checkIn: CheckIn; habit: HabitWithMeta }>(`/habits/${habitId}/check-ins`, {
       method: 'PUT',
       body: data,
     }),

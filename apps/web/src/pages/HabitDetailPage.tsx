@@ -54,9 +54,17 @@ export function HabitDetailPage() {
     setCheckInError('');
     setSaving(true);
     try {
-      await habitApi.checkIn(habit.id, {
+      const result = await habitApi.checkIn(habit.id, {
         date: selectedDate,
         completed: !selectedDateCompleted,
+      });
+      setHabit(result.habit);
+      setCheckIns((current) => {
+        const existingIndex = current.findIndex((checkIn) => checkIn.id === result.checkIn.id);
+        if (existingIndex === -1) return [...current, result.checkIn];
+        return current.map((checkIn) =>
+          checkIn.id === result.checkIn.id ? result.checkIn : checkIn,
+        );
       });
       await load();
     } catch (e) {

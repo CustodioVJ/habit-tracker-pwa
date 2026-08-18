@@ -41,7 +41,17 @@ export function DashboardPage() {
     setCheckInError('');
     setSavingHabitId(habit.id);
     try {
-      await habitApi.checkIn(habit.id, { date: today, completed: next });
+      const result = await habitApi.checkIn(habit.id, { date: today, completed: next });
+      setData((current) =>
+        current
+          ? {
+              ...current,
+              habits: current.habits.map((item) =>
+                item.id === result.habit.id ? result.habit : item,
+              ),
+            }
+          : current,
+      );
       await load();
     } catch (e) {
       setCheckInError(e instanceof Error ? e.message : 'Failed to update check-in');
