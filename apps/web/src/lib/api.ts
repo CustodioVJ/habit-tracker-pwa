@@ -183,10 +183,10 @@ export const habitApi = {
       method: 'PUT',
       body: data,
     }),
+  checkIns: (habitId: string) => request<{ checkIns: CheckIn[] }>(`/habits/${habitId}/check-ins`),
   stats: (habitId: string, period: 'week' | 'month' | 'year') =>
     request<{ stats: HabitStats }>(`/habits/${habitId}/stats?period=${period}`),
-  heatmap: (habitId: string) =>
-    request<{ heatmap: HeatmapCell[] }>(`/habits/${habitId}/heatmap`),
+  heatmap: (habitId: string) => request<{ heatmap: HeatmapCell[] }>(`/habits/${habitId}/heatmap`),
 };
 
 // ---- Categories ----

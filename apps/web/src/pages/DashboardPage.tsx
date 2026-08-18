@@ -17,6 +17,8 @@ export function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [checkInError, setCheckInError] = useState('');
+  const [savingHabitId, setSavingHabitId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -34,13 +36,17 @@ export function DashboardPage() {
   }, [load]);
 
   const toggleCheckIn = async (habit: HabitWithMeta) => {
-    const today = todayString();
+    const today = data?.today ?? todayString();
     const next = !habit.todayCompleted;
+    setCheckInError('');
+    setSavingHabitId(habit.id);
     try {
       await habitApi.checkIn(habit.id, { date: today, completed: next });
       await load();
-    } catch {
-      // ignore
+    } catch (e) {
+      setCheckInError(e instanceof Error ? e.message : 'Failed to update check-in');
+    } finally {
+      setSavingHabitId(null);
     }
   };
 
@@ -98,10 +104,21 @@ export function DashboardPage() {
       <div className="card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Today</h2>
-          <Link to="/habits" className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+          <Link
+            to="/habits"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+          >
             Manage habits
           </Link>
         </div>
+        {checkInError ? (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300"
+          >
+            {checkInError}
+          </p>
+        ) : null}
         {habits.length === 0 ? (
           <div className="py-8 text-center">
             <p className="text-gray-500 dark:text-gray-400">No habits yet.</p>
@@ -115,13 +132,22 @@ export function DashboardPage() {
               <li key={habit.id} className="flex items-center gap-4 py-3">
                 <button
                   onClick={() => void toggleCheckIn(habit)}
+                  disabled={savingHabitId === habit.id}
                   className="shrink-0"
                   title={habit.todayCompleted ? 'Mark as not done' : 'Mark as done'}
+                  aria-label={
+                    habit.todayCompleted
+                      ? `Mark ${habit.name} as not done`
+                      : `Mark ${habit.name} as done`
+                  }
                 >
                   {habit.todayCompleted ? (
                     <CheckCircle2 size={28} className="text-green-500" />
                   ) : (
-                    <Circle size={28} className="text-gray-300 hover:text-brand-500 dark:text-gray-600" />
+                    <Circle
+                      size={28}
+                      className="text-gray-300 hover:text-brand-500 dark:text-gray-600"
+                    />
                   )}
                 </button>
                 <div className="min-w-0 flex-1">
@@ -152,15 +178,7 @@ export function DashboardPage() {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="card p-4">
       <div className="mb-2 flex items-center gap-2 text-gray-500 dark:text-gray-400">{icon}</div>

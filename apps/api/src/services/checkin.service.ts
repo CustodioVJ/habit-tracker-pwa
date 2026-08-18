@@ -1,10 +1,7 @@
 import { UpsertCheckInInput } from '@habit/shared';
 import { prisma } from '../lib/prisma';
 import { notFound, forbidden, badRequest } from '../lib/errors';
-import { fromDateString, toDateString, todayString, addDays } from '../lib/dates';
-
-/** Maximum number of days in the past a check-in can be backfilled. */
-const BACKFILL_WINDOW_DAYS = 90;
+import { fromDateString, toDateString, todayString } from '../lib/dates';
 
 /** Ensure a habit belongs to the user, else throw. */
 async function getOwnedHabit(habitId: string, userId: string) {
@@ -22,12 +19,9 @@ async function getOwnedHabit(habitId: string, userId: string) {
 export async function upsertCheckIn(habitId: string, userId: string, input: UpsertCheckInInput) {
   const habit = await getOwnedHabit(habitId, userId);
 
-  // Enforce backfill window: cannot check in too far in the past or future.
+  // Backfills are intentionally unlimited so forgotten check-ins can always
+  // be recorded. Future check-ins are still invalid.
   const today = todayString();
-  const earliest = addDays(today, -BACKFILL_WINDOW_DAYS);
-  if (input.date < earliest) {
-    throw badRequest(`Cannot backfill more than ${BACKFILL_WINDOW_DAYS} days in the past`);
-  }
   if (input.date > today) {
     throw badRequest('Cannot check in for a future date');
   }

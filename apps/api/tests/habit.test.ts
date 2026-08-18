@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
 import { prisma } from '../src/lib/prisma';
+import { addDays, todayString } from '../src/lib/dates';
 
 const app = createApp();
 
@@ -43,9 +44,7 @@ describe('Habit API', () => {
   });
 
   it('lists habits', async () => {
-    const res = await request(app)
-      .get('/api/v1/habits')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get('/api/v1/habits').set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.habits.length).toBeGreaterThanOrEqual(1);
   });
@@ -60,13 +59,36 @@ describe('Habit API', () => {
   });
 
   it('checks in a habit for today', async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayString();
     const res = await request(app)
       .put(`/api/v1/habits/${habitId}/check-ins`)
       .set('Authorization', `Bearer ${token}`)
       .send({ date: today, completed: true });
     expect(res.status).toBe(200);
     expect(res.body.checkIn.completed).toBe(true);
+  });
+
+  it('allows a check-in on any past date', async () => {
+    const pastDate = '2000-01-01';
+    const res = await request(app)
+      .put(`/api/v1/habits/${habitId}/check-ins`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: pastDate, completed: true });
+
+    expect(res.status).toBe(200);
+    expect(res.body.checkIn.date).toBe(pastDate);
+    expect(res.body.checkIn.completed).toBe(true);
+  });
+
+  it('still rejects a check-in on a future date', async () => {
+    const futureDate = addDays(todayString(), 1);
+    const res = await request(app)
+      .put(`/api/v1/habits/${habitId}/check-ins`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ date: futureDate, completed: true });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.message).toBe('Cannot check in for a future date');
   });
 
   it('reflects today completion in the habit', async () => {
@@ -87,9 +109,7 @@ describe('Habit API', () => {
   });
 
   it('excludes archived habits from default list', async () => {
-    const res = await request(app)
-      .get('/api/v1/habits')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app).get('/api/v1/habits').set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.habits.find((h: { id: string }) => h.id === habitId)).toBeUndefined();
   });
